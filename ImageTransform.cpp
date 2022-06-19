@@ -67,29 +67,23 @@ PNG grayscale(PNG image) {
  * @return The image with a spotlight.
  */
 PNG createSpotlight(PNG image, int centerX, int centerY) {
-  unsigned newx = static_cast<unsigned>(centerX);
-  unsigned newy = static_cast<unsigned>(centerY);
 
-  for (unsigned x = 0; x < image.width(); ++x) {
-    for (unsigned y = 0; y < image.height(); ++y) {
-      if(x == newx && y == newy) {
-        continue;
-      }
-
+  for (unsigned x = 0; x < image.width(); x++) {
+    for (unsigned y = 0; y < image.height(); y++) {
       HSLAPixel & pixel = image.getPixel(x, y);
-      double lum = std::sqrt((newx-x)*(newx-x) + (newy-y)*(newy-y))*static_cast<double>(0.005);
-
-      if (lum >= static_cast<double>(0.8)) {
-        lum = static_cast<double>(0.8);
-      }
-      lum = 1.0 - lum;
-      pixel.l =  (pixel.l * lum);
-    }// y
-  }// x
-
+      double distance=sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY));
+      double decrease_factor = 1-distance*0.5/100 ;
+      if (distance>160) decrease_factor=0.2;
+      // `pixel` is a reference to the memory stored inside of the PNG `image`,
+      // which means you're changing the image directly. No need to `set`
+      // the pixel since you're directly changing the memory of the image.
+      pixel.l = decrease_factor*pixel.l;
+    }
+  }
   return image;
 
 }
+    
 
 
 /**
@@ -103,15 +97,16 @@ PNG createSpotlight(PNG image, int centerX, int centerY) {
  * @return The illinify'd image.
 **/
 PNG illinify(PNG image) {
-  for (unsigned x = 0; x < image.width(); ++x) {
-    for (unsigned y = 0; y < image.height(); ++y) {
+
+  for (unsigned x = 0; x < image.width(); x++) {
+    for (unsigned y = 0; y < image.height(); y++) {
       HSLAPixel & pixel = image.getPixel(x, y);
-      if( pixel.h >= 200 && pixel.h < 330) {
-        pixel.h = 216;
-      }
-      else {
-        pixel.h = 11;
-      }
+
+      // `pixel` is a reference to the memory stored inside of the PNG `image`,
+      // which means you're changing the image directly. No need to `set`
+      // the pixel since you're directly changing the memory of the image.
+      pixel.h=11;
+      if(pixel.h >= 113.5 && pixel.h <=293.5) pixel.h=216;
     }
   }
   return image;
@@ -131,15 +126,24 @@ PNG illinify(PNG image) {
 * @return The watermarked image.
 */
 PNG watermark(PNG firstImage, PNG secondImage) {
+
   for (unsigned x = 0; x < secondImage.width(); x++) {
     for (unsigned y = 0; y < secondImage.height(); y++) {
-      HSLAPixel& firstPixel = firstImage.getPixel(x, y);
-      HSLAPixel& secondPixel = secondImage.getPixel(x, y);
-      if(secondPixel.l == 1.0) {
-        firstPixel.l += 0.2;
+      HSLAPixel & pixel2 = secondImage.getPixel(x, y);
+      HSLAPixel & pixel1 = firstImage.getPixel(x,y);
+      //if(pixel2.l==1){pixel1.l+=0.2;}
+      if(pixel2.l==1){
+        if(pixel1.l+0.2<1){
+        pixel1.l+=0.2;
+        }
+        else{
+        pixel1.l=1;
+        }
       }
+      // `pixel` is a reference to the memory stored inside of the PNG `image`,
+      // which means you're changing the image directly. No need to `set`
+      // the pixel since you're directly changing the memory of the image.
     }
   }
   return firstImage;
-}
 
