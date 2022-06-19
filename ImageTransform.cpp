@@ -11,8 +11,8 @@
 
 Write your name and email address in the comment space here:
 
-Name:
-Email:
+Name:Abdul Kaish
+Email: kaishabdul7@gmail.com
 
 (...end multi-line comment.)
 ******************** */
@@ -67,11 +67,30 @@ PNG grayscale(PNG image) {
  * @return The image with a spotlight.
  */
 PNG createSpotlight(PNG image, int centerX, int centerY) {
+  unsigned newx = static_cast<unsigned>(centerX);
+  unsigned newy = static_cast<unsigned>(centerY);
+
+  for (unsigned x = 0; x < image.width(); ++x) {
+    for (unsigned y = 0; y < image.height(); ++y) {
+      if(x == newx && y == newy) {
+        continue;
+      }
+
+      HSLAPixel & pixel = image.getPixel(x, y);
+      double lum = std::sqrt((newx-x)*(newx-x) + (newy-y)*(newy-y))*static_cast<double>(0.005);
+
+      if (lum >= static_cast<double>(0.8)) {
+        lum = static_cast<double>(0.8);
+      }
+      lum = 1.0 - lum;
+      pixel.l =  (pixel.l * lum);
+    }// y
+  }// x
 
   return image;
-  
+
 }
- 
+
 
 /**
  * Returns a image transformed to Illini colors.
@@ -84,10 +103,20 @@ PNG createSpotlight(PNG image, int centerX, int centerY) {
  * @return The illinify'd image.
 **/
 PNG illinify(PNG image) {
-
+  for (unsigned x = 0; x < image.width(); ++x) {
+    for (unsigned y = 0; y < image.height(); ++y) {
+      HSLAPixel & pixel = image.getPixel(x, y);
+      if( pixel.h >= 200 && pixel.h < 330) {
+        pixel.h = 216;
+      }
+      else {
+        pixel.h = 11;
+      }
+    }
+  }
   return image;
 }
- 
+
 
 /**
 * Returns an immge that has been watermarked by another image.
@@ -102,6 +131,15 @@ PNG illinify(PNG image) {
 * @return The watermarked image.
 */
 PNG watermark(PNG firstImage, PNG secondImage) {
-
+  for (unsigned x = 0; x < secondImage.width(); x++) {
+    for (unsigned y = 0; y < secondImage.height(); y++) {
+      HSLAPixel& firstPixel = firstImage.getPixel(x, y);
+      HSLAPixel& secondPixel = secondImage.getPixel(x, y);
+      if(secondPixel.l == 1.0) {
+        firstPixel.l += 0.2;
+      }
+    }
+  }
   return firstImage;
 }
+
